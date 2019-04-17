@@ -1,0 +1,37 @@
+#########################################################################################
+#  Description : Install "CrowdStircker" on windows machine, Exe will be copied from    #
+#                Controller (Linux) to windows. A folder will be created in windows as  #
+#                "c:\Ansible_Installer" and installs                                    #
+#                                                                                       #
+#  Author : Pimcore L2 team                                                             #
+#########################################################################################
+
+- name: start of the windows update
+  hosts: win
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: sushena
+  vars:
+        ansible_become_password: "*!,W:t?5qc%{~9/"
+        file_name : "WindowsSensor_392D4CEC720244B9B1D5434A7AC78AA3-70.exe"
+        repo_unix_path : "/home/ansible/"
+        win_path : "C:\\Ansible_Installer\\"
+
+  tasks:
+  - name: Create a directory in windows
+    win_file:
+       path: "{{win_path}}"
+       state: directory
+
+  - name: Copy installer from Linux to windows
+    win_copy:
+       src: "{{repo_unix_path}}{{file_name}}"
+       dest: "{{win_path}}"
+
+  - name:
+    win_package:
+       path: "{{win_path}}{{file_name}}"
+       productid: auto
+       creates_service: "CSFalconService" #if available doesn`t install
+       arguments: /install /passive /norestart
