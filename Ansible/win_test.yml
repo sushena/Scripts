@@ -1,0 +1,13 @@
+- name: start of the windows update
+  hosts: win
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: sushena
+  vars:
+        ansible_become_password: "*!,W:t?5qc%{~9/"
+
+
+  tasks:
+  - name: Test commands on windows
+    win_ping:
