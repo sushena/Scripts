@@ -1,1 +1,1 @@
-ECHO is on.
+ansible -i /home/ansible/hosts all -m win_ping -e="ansible_ssh_port=5986, ansible_connection=winrm" -vvv
