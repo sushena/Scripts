@@ -1,0 +1,18 @@
+- name: Playbook to Install and adheres
+  hosts: TestHosts
+  remote_user: ansible
+  become: root
+  vars:
+        src_path : "/home/ansible/installer/unix/"
+        dest_path : "/tmp/"
+        start_script_file : "unix_startup.sh"
+
+  tasks:
+  - name: Copy the start script from controller to node
+    copy:
+       src: "{{src_path}}{{start_script_file}}"
+       dest: "{{dest_path}}{{start_script_file}}"
+       mode: 0775
+
+  - name: Executing the shell script
+    command: '{{dest_path}}{{start_script_file}}'

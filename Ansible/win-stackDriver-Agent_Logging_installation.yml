@@ -1,0 +1,33 @@
+############################################################################################
+#  Description : Installing "Stack driver AGENT and LOGGING" tool on windows machine       #
+#                                                                                          #
+#  Author : Pimcore L2 team                                                                #
+############################################################################################
+
+- name: start of the windows update
+  hosts: win
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: asbuser
+ # become_user: logileprod
+  vars:
+        ansible_become_password: ';&DjXZ]y)Co><*S'
+      # ansible_become_password: 'E0p(b#^5h4-[SD%'
+        repo_unix_path : "/home/ansible/installer/scripts/"
+        batch_file : "win_start.ps1"
+        win_path : "C:\\Ansible_Installer.ps1"
+
+  tasks:
+  - name: Create a file in target windows node
+    win_file:
+       path: "{{win_path}}"
+       state: touch
+
+  - name: Copy installer from Controller to windows node
+    win_copy:
+       src: "{{repo_unix_path}}{{batch_file}}"
+       dest: "{{win_path}}"
+
+  - name: Executing the agent and logfile
+    win_command: powershell.exe -ExecutionPolicy ByPass -File "{{win_path}}"
