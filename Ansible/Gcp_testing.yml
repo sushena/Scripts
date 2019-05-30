@@ -1,0 +1,38 @@
+- name: Start of the windows update
+  hosts: win
+  gather_facts: no
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: admin
+  vars:
+    ansible_become_password: '}C7I]8zH@5cPDE8'
+    gcp_object: "gcp-dbbackup-bucket/emeraldpos/stage/"
+
+  tasks:
+  - name: hostname
+    win_command: hostname
+    register: Hstname
+
+ # - debug:
+ #   msg : "{{ Hstname.stdout | trim}}"  
+
+  - set_fact:
+      Htname: "{{ Hstname.stdout | trim}}"
+
+  - debug:
+      msg: "{{Htname}}"
+
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+  - name: Create folder under EMERALDPOS
+    gc_storage:
+      bucket: gcp-dbbackup-bucket
+      object: "{{gcp_object}}{{Htname}}"
+      mode: create
+      region: us-west2
+      project: share-services-228905
+      gs_access_key: "GOOGNQOAZ2H4V736IKSJS25P"
+      gs_secret_key: "LDXWnGDfJlAcVEn1XS9d5kh25QnhYoxnmyVxxVmR"

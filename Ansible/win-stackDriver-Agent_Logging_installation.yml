@@ -6,6 +6,7 @@
 
 - name: start of the windows update
   hosts: win
+  gather_facts: no
   serial: 1
   connection: winrm
   become_method: runas

@@ -1,0 +1,28 @@
+   
+       /home/ansible/playbooks/appPatch/Linux/gcp_copy.yml
+       
+       /home/ansible/playbooks/DBpatch/Windows/gcp_bucket.yml
+       
+  - name: Copy file to cloud storage
+    gc_storage:
+       bucket: test-bucket-cloudfunction
+       object: url.html_ansible
+       src: /tmp/url.html_ansible
+       mode: put
+       region: us-west2
+       #permission: public-read
+       #service_account_email: terraform-user@shared-vpc-northgate.iam.gserviceaccount.com
+       #credentials_file: /home/ansible/key.json
+       #project: share-services-228905
+       gs_access_key: "GOOGNQOAZ2H4V736IKSJS25P"
+       gs_secret_key: "LDXWnGDfJlAcVEn1XS9d5kh25QnhYoxnmyVxxVmR"
+
+- name: Copy file to cloud storage
+    gc_storage:
+       bucket: gcp-dbbackup-bucket
+       object: gcp-dbbackup-bucket/emeraldpos/stage 
+       mode: create
+       region: us-west2
+       project: share-services-228905
+       gs_access_key: "GOOGNQOAZ2H4V736IKSJS25P"
+       gs_secret_key: "LDXWnGDfJlAcVEn1XS9d5kh25QnhYoxnmyVxxVmR"

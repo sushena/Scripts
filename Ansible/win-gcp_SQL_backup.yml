@@ -1,0 +1,47 @@
+- name: start of the windows update
+  hosts: win
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: asbuser
+  vars:
+        ansible_become_password: ';&DjXZ]y)Co><*S'
+        win_bucket_name: "C:\\Bucket\\"
+        Jfile_path: "/home/ansible/installer/scripts/"
+        Jfile_name: "gcp_service_acc.json"
+        gcp_project: "Shared-Services"
+        gcp_bucket_name: "gcp-dbbackup-bucket"
+
+  tasks:
+  - name: Create a directory in target windows node
+    win_file:
+       path: "{{win_bucket_name}}"
+       state: directory
+       
+  - name: JSON shared key to windows bucket
+    win_copy:
+       src: "{{Jfile_path}}{{Jfile_name}}"
+       dest: "{{win_bucket_name}}"
+   
+  - name: create handshake with gcp storage
+    gcp_storage_bucket:
+        name: "{{gcp_bucket_name}}"
+        project: "{{gcp_project}}"
+        auth_kind: serviceaccount
+        service_account_file: "{{win_bucket_name}}{{Jfile_name}}"
+        state: present
+    register: bucket
+ 
+ 
+ 
+
+ - name: 
+    gcp_storage_object:
+        action: upload
+        bucket: prod
+        src: modules.zip    
+        dest: "~/*.*"
+        project: test_project
+        auth_kind: 
+        service_account_file: 
+        state: present
