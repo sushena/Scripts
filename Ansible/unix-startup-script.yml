@@ -1,5 +1,6 @@
 - name: Playbook to Install and adheres
   hosts: TestHosts
+  gather_facts: no
   remote_user: ansible
   become: root
   vars:
