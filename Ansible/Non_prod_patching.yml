@@ -1,0 +1,31 @@
+---
+- name: check for updates
+  hosts: 10.199.24.13
+  gather_facts: no
+  remote_user: ansible
+  become: yes
+  become_user: root
+
+  tasks:
+    - name: Perform a yum clean
+      command: /usr/bin/yum clean all
+
+    - name: Ensure the yum package index is up to Date
+      yum:
+        update_cache: yes
+        name: '*'
+        state: latest
+
+    - name: update all the packages to latest
+      yum:
+        name: '*'
+        state: latest
+        exclude: java-*
+      register: yum_output
+
+    - name: Print variable ouput
+      debug:
+        var: yum_output.results
+
+    - name: Reboot the machine post KERNEL upgrade
+      reboot:

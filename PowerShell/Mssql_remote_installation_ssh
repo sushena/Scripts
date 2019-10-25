@@ -1,0 +1,131 @@
+#
+# Check Powershell version and exit if not Powershell 6.x
+
+#$ErrorActionPreference = "Continue"
+if ( -NOT ($PSversionTable.PSVersion.Major -eq 6)) {
+        'Please run script with Powershell 6.x'
+        exit
+}
+
+$MSSQLPackage="mssql.zip"
+$MSSQLConfig="developer-ConfigurationFile.ini"
+$RepoServerURL="http://pxe1.sfo.sentient-energy.com/mssql"
+$MSSQLServerIP="172.18.2.184"
+
+$MSSQLServerCur = $MSSQLPackage
+$MSSQLServerIP = Read-Host -Prompt "MS SQL Server Server IP ($MSSQLServerIP)"
+if ( $MSSQLServerIP -eq "" ) {
+        $MSSQLServerIP = $MSSQLServerCur
+        }
+
+$MSSQLPackCur = $MSSQLPackage
+$MSSQLPackage = Read-Host -Prompt "Name of MS SQL Server installer ($MSSQLPackage)"
+if ( $MSSQLPackage -eq "" ) {
+        $MSSQLPackage = $MSSQLPackCur
+        }
+
+$MSSQLConfigCur = $MSSQLConfig
+$MSSQLConfig = Read-Host -Prompt "Name of MS SQL Configuration File ($MSSQLConfig)"
+if ( $MSSQLConfig -eq "" ) {
+        $MSSQLConfig = $MSSQLConfigCur
+        }
+
+
+$RepoServerCur = $RepoServerURL
+$RepoServerURL = Read-Host -Prompt "Name of Repo Server URL: `n($RepoServerURL)"
+if ( $RepoServerURL -eq "" ) {
+        $RepoServerURL = $RepoServerCur
+        }
+
+Write-Host "##################################################################"
+Write-Host "Summary:"
+Write-Host "##################################################################"
+Write-Host "MS SQL Server IP Address: $MSSQLServerIP"
+Write-Host "MS SQL Server installer: $MSSQLPackage"
+Write-Host "MS SQL Configuration File: $MSSQLConfig"
+Write-Host "Repo Server URL: $RepoServerURL"
+Write-Host "##################################################################"
+
+$Response = Read-Host -Prompt "Ready to install? (y/n)"
+if ( -NOT ($Response -eq "y" -Or $Response -eq "")) {
+        Write-Host "Exiting..."
+        exit
+        }
+
+Write-Host "Starting Installation..."
+
+try{
+	$session = New-PSSession -HostName $MSSQLServerIP -UserName administrator
+
+	[String]$msSer = Invoke-Command $session -ScriptBlock { Get-Service "mssql*" | Select -ExpandProperty Status }
+	if ( $msSer -eq "Running" -or $msSer -eq "Stopped" )
+	{
+		Write-Host "MSSQL is installed already in $MSSQLServerIP" -BackgroundColor Green
+		exit
+	}
+
+	Write-Host "Downloading package..."
+	Invoke-Command $session -ScriptBlock { Invoke-WebRequest $using:RepoServerURL/$using:MSSQLPackage -OutFile $using:MSSQLPackage }
+
+	$RemPath = Invoke-Command $session -ScriptBlock { pwd }
+	Write-Host "Remote path: $RemPath.`n"
+}
+catch{
+	Write-Host $("Connecting error to $MSSQLServerIP or $RepoServerCur " +$_.Exception.Message)
+	exit
+}
+
+$Response = Read-Host -Prompt "Continue? (y/n)"
+if ( -NOT ($Response -eq "y" -Or $Response -eq "")) {
+        Write-Host "Exiting..."
+        exit
+        }
+
+Write-Host "Extracting $MSSQLPackage..."
+
+Invoke-Command $session -ScriptBlock { $InstallPath = Join-Path $using:RemPath $using:MSSQLPackage; Expand-Archive -LiteralPath: $InstallPath -DestinationPath $using:RemPath }
+
+$Response = Read-Host -Prompt "Continue? (y/n)"
+if ( -NOT ($Response -eq "y" -Or $Response -eq "")) {
+        Write-Host "Exiting..."
+        exit
+        }
+
+Write-Host "Downloading Configuration File..."
+
+$RemMSSQLPath = Invoke-Command $session -ScriptBlock { Join-Path $using:RemPath "SQLServer2017-DEV-x64-ENU" }
+Write-Host $RemMSSQLPath
+
+# Invoke-Command $session -ScriptBlock { cd $using:RemMSSQLPath; Invoke-WebRequest $using:RepoServerURL/$using:MSSQLConfig -OutFile $using:MSSQLConfig }
+Invoke-Command $session -ScriptBlock { cd $using:RemMSSQLPath; Invoke-WebRequest $using:RepoServerURL/$using:MSSQLConfig -OutFile ConfigurationFile.ini }
+
+$Response = Read-Host -Prompt "Continue? (y/n)"
+if ( -NOT ($Response -eq "y" -Or $Response -eq "")) {
+        Write-Host "Exiting..."
+        exit
+        }
+
+Write-Host "Installing MS SQL Server..."
+
+try{
+	if ( Invoke-Command $session -ScriptBlock { Test-Path -Path $using:RemMSSQLPath } ) {
+		Invoke-Command $session -ScriptBlock { cd $using:RemMSSQLPath; .\setup.exe /SAPWD="Abcd@1234" /CONFIGURATIONFILE=ConfigurationFile.ini }
+	}
+}
+catch
+{
+	Write-Host $("Installation Error in $MSSQLServerIP " +$_.Exception.Message)
+	exit
+}
+
+$Response = Read-Host -Prompt "Continue? (y/n)"
+if ( -NOT ($Response -eq "y" -Or $Response -eq "")) {
+        Write-Host "Exiting..."
+        exit
+        }
+
+# Invoke-Command $session -ScriptBlock { cmd }
+# Invoke-Command $session -ScriptBlock { cmd }
+
+Invoke-Command $session -ScriptBlock { $PSVersionTable.PSVersion.Major }
+Invoke-Command $session -ScriptBlock { $my_version = $PSversionTable.PSVersion.Major; $my_platform = $PSversionTable.Platform; Write-Host "This is a test...`nRunning on $my_platform with major version $my_version." }

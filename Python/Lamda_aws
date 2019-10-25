@@ -1,0 +1,42 @@
+import sys
+import pymysql
+from boto.s3.connection import S3Connection
+
+rds_host  = "reorder.cd9y9afuesot.us-east-1.rds.amazonaws.com"
+name = "admin"
+password = "VB&p1C(VD-bT"
+db_name = "ReorderPointsdb"
+keyNameL = []
+
+try:
+	conn = S3Connection('AKIAUDMBYHIRFBMQHY7X', 'eCWWgQlpjrpuFkUK/A/lofqDJBwwrM3cf4wwsPCK')
+	myBuck=conn.get_bucket('cmpdemo')
+
+	for i in myBuck.get_all_keys():
+		key = str(i)
+		Skey = str(key.split(",")[1])
+		flag = Skey.endswith(".csv>")
+		if flag:
+			keyName = Skey.rstrip('>')
+			keyNameL.append(keyName.split(".")[0])
+except Exception as awsE:
+	print("AWS connectivity Error", awsE)
+	sys.exit()
+
+try:
+    conn = pymysql.connect(rds_host, user=name, passwd=password, db=db_name, connect_timeout=5)
+except pymysql.MySQLError as e:
+    print(" MySQL connection error", e)
+    sys.exit()
+
+def handler(event, context):
+    """
+    This function fetches content from MySQL RDS instance
+    """
+    item_count = 0
+	for kfile in keyNameL:
+		with conn.cursor() as cur:
+			cur.execute("truncate table %s", (kfile))
+			cur.execute("load data from S3 's3://reorderpostnorthvirginia/%s.csv' INTO table %s FIELDS TERMINATED BY ',' IGNORE 1 ROWS ;", (kfile, kfile))
+			cur.close()
+		return "Added %d items from RDS MySQL table" %(item_count)
