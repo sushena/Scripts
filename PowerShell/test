@@ -1,0 +1,15 @@
+<NotepadPlus>
+    <Project name="PIMCORE">
+        <Folder name="PS">
+            <File name="Master_FileWatcher_Added.ps1" />
+        </Folder>
+        <Folder name="Ansible">
+            <File name="C:\Users\sushena.p\Scripts\Ansible\Gcp_testing.yml" />
+            <File name="C:\Users\sushena.p\Scripts\Ansible\unix-startup-script.yml" />
+            <File name="C:\Users\sushena.p\Scripts\Ansible\win_test.yml" />
+            <File name="C:\Users\sushena.p\Scripts\Ansible\win-crowdstricker-agent-installation.yml" />
+            <File name="C:\Users\sushena.p\Scripts\Ansible\win-gcp_SQL_backup.yml" />
+            <File name="C:\Users\sushena.p\Scripts\Ansible\win-stackDriver-Agent_Logging_installation.yml" />
+        </Folder>
+    </Project>
+</NotepadPlus>

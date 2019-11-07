@@ -1,0 +1,33 @@
+---
+- name: Install google-cloud-sdk package
+  hosts: 10.1.14.11
+  gather_facts: no
+  remote_user: ansible
+  become: yes
+  become_user: root
+
+  tasks:
+    - name: Add the Cloud SDK distribution URI as a package source
+      shell: 'echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk-stretch main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list'
+      register: URI_out
+    - debug: msg={{URI_out.stdout_lines}}
+
+    - name: Installing Transport and Certificates
+      command: 'apt-get install apt-transport-https ca-certificates'
+      register: tt_ca
+    - debug: msg={{tt_ca.stdout_lines}}
+
+    - name: Import the Google Cloud public key
+      shell: '/usr/bin/curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -'
+      args:
+        warn: no
+      register: pub_key_out
+    - debug: msg={{pub_key_out.stdout}}
+
+    - name: Update and Install google cloud
+      apt:
+        update_cache: yes
+        name: google-cloud-sdk
+        state: latest
+      register: gc_sdk
+    - debug:  msg={{gc_sdk.stdout_lines}}

@@ -1,0 +1,39 @@
+YAML - 
+	
+Datatype:
+  1,Key value pair
+    Fruits: Apple
+	Vegetable: carrot
+			
+  2,Array/Lists
+	Fruits:
+	-  Banana
+	-  CustardApple
+			
+	Vegetables:
+	-  Beans
+	-  Bitterguard
+			
+  3,Dictionary/Map
+    Bannana:
+	  Calories: 105
+	  Fat: 0.4g
+			
+	Grapes:
+	  Calories: 120
+	  Fat: 0.2g
+				
+  4,Dictionary in Dictionary (Car and its properties)                             List of Dictionary
+	Color: Silver																	- Color: White
+	Model:																			  Model: 
+	  Name: Ford                                                                        Name: Ford
+	  Year: 2018																		Model: 2018
+	Transmission: Manual															  Transmission: Manual
+	Price: 13,000,00																  Price: 11,000,00
+	
+																					- Color: BLack		
+			                                                                          Model:				
+                                                                                        Name: Ford        
+                                                                                        Year: 2019		
+                                                                                      Transmission: Automatic
+                                                                                      Price: 13,000,00	

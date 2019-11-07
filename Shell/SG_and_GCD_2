@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+gcd_ip=`grep -w sensor_gateway.ip /home/sushena.p/sentient-configure.conf | cut -d"=" -f 2`
+ample_ip=`grep -w ample.ip /home/sushena.p/sentient-configure.conf | cut -d"=" -f 2`
+mysql_ample_password=`grep -w mysql_ample_user.password /etc/sentient-configure/.secrets/sentient-configure.properties | cut -d"=" -f 2`
+
+if [ ! -z "$gcd_ip" -a "$ample_ip" != "" ]
+then
+  if [ ! -z "$mysql_ample_password" ]
+  then
+	echo "Installing and setting up sentient configure"
+    sudo /usr/sbin/sentient-configure
+	if [ $? -nq 0 ]
+	then
+		exit 1
+	fi
+	
+	echo "Installing sensor-gateway"
+	sudo yum -y install sensor-gateway	
+	
+	echo "Installing GCD"
+	sudo yum -y install gcd
+  fi
+fi
