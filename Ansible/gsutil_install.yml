@@ -31,3 +31,6 @@
         state: latest
       register: gc_sdk
     - debug:  msg={{gc_sdk.stdout_lines}}
+    
+DUCHWVVWHGVVHXWVEL
+DQ4EJXYJQPDGYQYYMV
