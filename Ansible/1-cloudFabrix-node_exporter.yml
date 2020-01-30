@@ -1,0 +1,69 @@
+---
+- name: Installing Node_Exporter(Cloud-Fabrix) 1
+  hosts: TestHosts
+  gather_facts: no
+  remote_user: ansible
+  become: yes
+  become_user: root
+  vars:
+        promethu_file: 'node_exporter'
+        promethu_dir: '/tmp/node_exporter-0.18.1.linux-amd64'
+        promethu_tar: '/tmp/node_exporter-0.18.1.linux-amd64.tar.gz'
+        tmp_dir: '/tmp'
+
+  tasks:
+    - name: Download Prometheus agent
+      get_url:
+        url: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+        dest: "{{promethu_tar}}"
+        mode: 0755
+
+    - name: Wait until the file /tmp/node is present before continuing
+      wait_for:
+        path: "{{promethu_tar}}"
+
+    - name: Untar the tarball
+      unarchive:
+        src: "{{promethu_tar}}"
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Copy the binary to /usr/local/bin
+      command: cp "{{ promethu_dir + '/' + promethu_file }}" /usr/local/bin/
+
+    - name: Touch a file for service
+      file:
+        path: /etc/systemd/system/node_exporter.service
+        state: touch
+        mode: u=rwx,g=r,o=r
+
+    - name: Update SERVICE file with content
+      blockinfile:
+        path: /etc/systemd/system/node_exporter.service
+        block: |
+          [Unit]
+          Description=Node Exporter
+          After=network.target
+
+          [Service]
+          User=root
+          Group=root
+          Type=simple
+          ExecStart=/usr/local/bin/node_exporter --collector.arp --collector.bcache --collector.bonding --collector.buddyinfo --collector.conntrack --collector.cpu --co
+llector.cpufreq --collector.diskstats --collector.drbd --collector.edac --collector.entropy --collector.filefd --collector.filesystem --collector.hwmon --collector.infi
+niband --collector.interrupts --collector.ipvs  --collector.ksmd  --collector.loadavg --collector.logind --collector.mdadm --collector.meminfo  --collector.meminfo_numa
+  --collector.mountstats --collector.netclass --collector.netdev --collector.netstat  --collector.nfs  --collector.nfsd  --collector.ntp --collector.pressure --collecto
+r.processes --collector.qdisc --collector.runit --collector.sockstat --collector.stat --collector.supervisord --collector.systemd --collector.tcpstat  --collector.time
+--collector.timex --collector.uname --collector.filesystem.ignored-mount-points=""  \
+          --collector.diskstats.ignored-devices=""
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reloading/Starting the module and Firewall update too
+      shell: |
+        systemctl daemon-reload
+        systemctl start "{{promethu_file}}"
+        systemctl status "{{promethu_file}}"
+        firewall-cmd --permanent --add-port=9100/tcp
+        firewall-cmd --reload

@@ -1,0 +1,27 @@
+- name: Installation of cloudFabrix for WINDOWS
+  hosts: windows
+  gather_facts: no
+  serial: 1
+  connection: winrm
+  become_method: runas
+  become_user: Ansibleservice@NORTHGATEGONZALEZ.INTERNAL
+  vars:
+        ansible_become_password: '27Bp+*S<5q$Vn#]M'
+        target_install_path: 'C:\Software\'
+        msi_name: 'wmi_exporter-0.9.0-amd64.msi'
+
+  tasks:
+
+  - name: Download msi
+    win_shell: |
+      $url = "https://github.com/martinlindhe/wmi_exporter/releases/download/v0.9.0/wmi_exporter-0.9.0-amd64.msi"
+      $request = [System.Net.WebRequest]::Create($url)
+      $request.AllowAutoRedirect=$false
+      $response = $request.GetResponse()
+      $downloadurl = $response.GetResponseHeader("Location")
+      $response.Close()
+      Invoke-WebRequest -Uri $downloadurl -OutFile "{{target_install_path}}{{msi_name}}"
+
+  - name: Install the MSI in target host
+    win_shell: |
+      msiexec /i "{{target_install_path}}{{msi_name}}" ENABLED_COLLECTORS=”os,cpu,cs,dns,logical_disk,memory,net,process,service,system,tcp” LISTEN_PORT=9182
