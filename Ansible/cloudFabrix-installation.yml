@@ -1,0 +1,8 @@
+---
+
+- name: Call and Install Node_Exporter
+  import_playbook: 1-cloudFabrix-node_exporter.yml
+
+- name: Call and Install Process_Exporter
+  import_playbook: 2-cloudFabrix-process_exporter.yml
+#2010ca02410180 - confirmation number

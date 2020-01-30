@@ -1,0 +1,38 @@
+---
+- name: Install process_exporter(Cloud Fabrix)2
+  hosts: TestHosts
+  gather_facts: no
+  remote_user: ansible
+  become: yes
+  become_user: root
+  vars:
+        tmp_dir: '/tmp'
+        process_exp: 'process-exporter'
+
+  tasks:
+    - name: Download Process Exporter agent to /tmp
+      get_url:
+        url: https://github.com/ncabatoff/process-exporter/releases/download/v0.5.0/process-exporter_0.5.0_linux_386.rpm
+        dest: "{{tmp_dir}}"
+
+    - name: Install the process exporter RPM
+      command: rpm -ivh "{{tmp_dir + '/' + 'process-exporter_0.5.0_linux_386.rpm'}}"
+      register: command_result
+      ignore_errors: True
+
+    - name: Nullify in all.yml file
+      shell: |
+        cat /dev/null > /etc/process-exporter/all.yaml
+
+    - name: Update content in all.yaml
+      copy:
+        src: /home/ansible/installer/unix/all.yaml
+        dest: "{{'/etc/' + process_exp + '/all.yaml'}}" #/etc/process-exporter/all.yaml
+
+    - name: Reloading/Starting Process exporter
+      shell: |
+        systemctl daemon-reload
+        systemctl start "{{process_exp}}"
+        systemctl status "{{process_exp}}"
+        firewall-cmd --permanent --add-port=9256/tcp
+        firewall-cmd --reload
