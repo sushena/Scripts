@@ -27,4 +27,3 @@ def lambda_handler(event, context):
                 f1.write('\n')
 
     s3.upload_file(file_lb, bucket_name, file_s3)
-
