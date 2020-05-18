@@ -1,0 +1,10 @@
+	
+Use of Well-Architected frame work with 3-Tier Architecture to Implement and Deploy OnMobile based VAS applications on Cloud.
+		Use of Security Best Practices along with tools such as AWS Config, Trusted Advisor, IAM Roles,Policies, S3 Bucket Policies and secrets manager to manage security and compliance of deployed infrastructure.
+
+		
+Integrate with Cloud Trial and Cloud Watch for Infrastructure Governance and Monitoring.
+		Integration of Cloud Systems with On-Premise datacenter elements with help of Direct Connect and Site2Site VPN.
+		Implement and Manage Backups using Lifecycle Manager and AWS Backups as per Organization policy.
+		Automation of Infrastructure Provisioning using Cloud Formation.
+		Automation of Server Start/Shutdown based on business requirements for Non-Production environments using Serverless functions/Lambda.

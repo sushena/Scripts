@@ -1,44 +1,38 @@
 Description: EC2 machine in 3 tier architecture aws_key_irl
 
 Parameters:
-  NetworkStackName:
-    Description: Enter Network stack name
-    Type: String
+  networkStackname:
+  Description: Network stack name
+  Type: String
 
-  KeyPairName:
-    Type: String
-    Default: aws_key_irl
-    Description: ssh key value pair
+keyPairName:
+  Type: String
+  Description: 
 
-  InstanceType:
-    Type: String
-    Description: Instance Type
-    Default: t2.micro
-    AllowedValues:
-    - t2.micro
-    - t2.small
-    - t2.medium
-    - t2.large
-    - t2.xlarge
-    - m3.medium
-    - m3.large
-    - m3.xlarge
+instanceType:
+  Type: String
+  Description: Instance Type
+  Default: t2.micro
+  AllowedValues:
+  - t2.micro
+  - t2.small
+  - t2.medium
+  - t2.large
+  - t2.xlarge
+  - m3.medium
 
-  SSHLocation:
+SSHLocation:
     Description: " The IP address range that can be used to SSH to the EC2 instances"
     Type: String
     MinLength: '9'
     MaxLength: '18'
     Default: 0.0.0.0/0
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.                                                                                                     
 
-  defAMIID:
+defAMIID:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"    
-
-  BucketName:
-    Type: String
-    Description: Enter the bucket name
 
 Mappings:
   AWSRegionToAMI:
@@ -51,124 +45,80 @@ Mappings:
     us-west-1:
       AMIID: ami-03d7632ea0ab75eaa
 
+BucketName:
+  Type: String
+  Description: Enter the bucket name
+
 Resources:
   BastionHost:
     Type: AWS::EC2::Instance
     Properties:
-      NetworkInterfaces:
-      - AssociatePublicIpAddress: "true"
-        DeviceIndex: "0"
-        GroupSet:
-          - Ref: "BastionSecurityGroup"
-        SubnetId:
-          Fn::ImportValue:
-            Fn::Sub: "${NetworkStackName}-PubSub1"
-      ImageId: !FindInMap
-        - AWSRegionToAMI
-        - !Ref AWS::Region
-        - AMIID
-      InstanceType:
-        Ref: InstanceType
+	 VpcId:
+      Fn::ImportValue:
+        Fn::Sub: "${networkStackname}-VPCID"
+	  SubnetId:
+	    Fn::ImportValue:
+		  Fn::Sub: "${networkStackname}-PubSub1"
+    ImageId: !FindInMap
+      - AWSRegionToAMI
+      - !Ref AWS::Region
+      - AMIID
+      instanceType:
+        Ref: instanceType
       IamInstanceProfile:
-        Ref: EC2InstanceProfile
-      Monitoring: false  
+        Ref: BastionHostProfile    
       KeyName:
-        Ref: KeyPairName
-      UserData: !Base64 |
-        #!/bin/bash -ex
-        sudo yum update -y
-        sudo yum install curl -y
-        echo "Hello world" 
-
-  Apache1:
-    Type: AWS::EC2::Instance
-    Properties:
-      SubnetId:
-        Fn::ImportValue:
-          Fn::Sub: "${NetworkStackName}-PvtMid1"
-      KeyName: !Ref KeyPairName
-      ImageId: !Ref defAMIID
-      InstanceType: !Ref InstanceType
-      Monitoring: false
-      SecurityGroupIds:
-        -
-          Ref: ApacheSecurityGroup
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      UserData: !Base64 |
-        #!/bin/bash -ex
-        sudo yum update -y
-        sudo yum install httpd -y
-        sudo systemctl enable httpd
-        sudo touch /var/www/html/index.html
-        sudo echo " Apache Server 1" >> /var/www/html/index.html
-        sudo chmod 755 /var/www/html/index.html
-        sudo chown root:root /var/www/html/index.html
-        sudo systemctl start httpd
-
-  Apache2:
-    Type: AWS::EC2::Instance
-    Properties:
-      SubnetId:
-        Fn::ImportValue:
-          Fn::Sub: "${NetworkStackName}-PvtMid2"
-      KeyName: !Ref KeyPairName
-      ImageId: !Ref defAMIID
-      InstanceType: !Ref InstanceType
-      Monitoring: false
-      SecurityGroupIds:
-        -
-          Ref: ApacheSecurityGroup
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      UserData: !Base64 |
-        #!/bin/bash -ex
-        sudo yum update -y
-        sudo yum install httpd -y
-        sudo systemctl enable httpd
-        sudo touch /var/www/html/index.html
-        sudo echo " Apache Server 2" >> /var/www/html/index.html
-        sudo chmod 755 /var/www/html/index.html
-        sudo chown root:root /var/www/html/index.html
-        sudo systemctl start httpd
-
-  BastionSecurityGroup:
+        Ref: keyPairName
+      AssociatePublicIpAddress: true
+      SecurityGroups:
+        Ref: InstanceSecurityGroup
+  InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId:
         Fn::ImportValue:
-          Fn::Sub: "${NetworkStackName}-VPCID"
-      GroupName: BastionSecurityGroup
-      GroupDescription: Bastion Security Group name
+          Fn::Sub: "${networkStackname}-VPCID"
+      GroupDescription: Enable SSH access via port 22
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
         CidrIp: !Ref SSHLocation
-
-  ApacheSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId:
-        Fn::ImportValue:
-          Fn::Sub: "${NetworkStackName}-VPCID"   
-      GroupName: ApplicationSecurityGroup
-      GroupDescription: Security Group for App Host
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '22'
-        ToPort: '22'
-        SourceSecurityGroupId : !Ref BastionSecurityGroup   
-      - IpProtocol: tcp
-        FromPort: '80'
-        ToPort: '80'
-        CidrIp : '0.0.0.0/0'
-
-  EC2InstanceProfile:
+  BastionHostProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: "/"
-      Roles:
-        - Ref: EC2Role
- 
+      Roles: !Ref EC2Role
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      Policies:
+      - PolicyName: ecs-instance-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:GetBucketLogging
+            - s3:ListBucketVersions
+            - s3:ListBucket
+            - s3:GetBucketVersioning
+            - s3:GetBucketAcl
+            - s3:GetObject
+            - s3:GetObjectAcl
+            - s3:GetObjectVersionAcl
+            - s3:GetObjectTagging
+            - s3:GetObjectVersion
   EC2Role:
     Type: AWS::IAM::Role
     Properties:
@@ -205,28 +155,3 @@ Resources:
                          - - 'arn:aws:s3:::'
                            - !Ref BucketName
                            - "/*"
-
-Outputs:
-  BastionIP:
-    Value: 
-      Ref: BastionHost
-    Description: IP of Bastion Host
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-BastionHost"
-
-  Apache1IP:
-    Value:
-      Ref: Apache1
-    Description: IP of Apache-1 Server
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-Apache1"
-
-  Apache2IP:
-    Value:
-      Ref: Apache2
-    Description: IP of Apache-1 Server
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-Apache2"
