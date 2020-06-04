@@ -1,6 +1,8 @@
 pipeline {
     agent any
-    options { timestamps () }
+    options { 
+        timestamps () 
+    }
 
     environment {
         user_name = "jenkins_deploy"
@@ -11,10 +13,9 @@ pipeline {
         tomcat_dir_2 = "/opt/tomcat/apache-tomcat-9.0.35/webapps/*war"
     }
 
-     tools {
+    tools {
         maven 'M2_HOME' 
         }
-
     stages {
         stage ('Git Checkout') {
             steps {
@@ -56,7 +57,6 @@ pipeline {
                 source /etc/profile
                 set -x
                 sshpass -e ssh -o "StrictHostKeyChecking=no" "$user_name"@"$tomcat_ip" "sudo chmod 755 $tomcat_dir_2"
-                
                 '''
             }
         }
