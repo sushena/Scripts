@@ -6,7 +6,6 @@ ToDate=$(date +%Y-%m-%d)
 instances_log="/opt/script/GCP-snapShot/log/instances_${ToDate}.log"
 reportName="/opt/script/GCP-snapShot/report/snapDisk_${ToDate}_report.csv"
 yesDT=`echo -e "$(TZ=GMT+30 date +%Y-%m-%d)\n$(TZ=GMT+20 date +%Y-%m-%d)" | grep -v $(date +%Y-%m-%d) | tail -1`
-
 #cat /dev/null > ${reportName}
 
 projectID=`gcloud projects list --format="value(projectId)"`
