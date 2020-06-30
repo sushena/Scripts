@@ -64,17 +64,17 @@ for f in all_files:
 
 writer.save()
 
-def pimcore_SendMail():
-        email = 'ngsupport@northgatemarkets.com'
-        send_to_email = 'ng-infrastructure-support@pimcore.services'
-        subject = 'GCP instances report ~ NorthGate'
+def pime_SendMail():
+        email = 'ngsupport@northmarkets.com'
+        send_to_email = 'ng-infrastructure-support@pime.services'
+        subject = 'GCP instances report ~ NorGate'
         message = """
 Dear Ananth/Nabil,
    Attached report report for GCP instances
 
 ---
 GCP Infra support
-ng-infrastructure-support@pimcore.services
+ng-infrastructure-support@pime.services
 
         """
         msg = MIMEMultipart()
@@ -92,13 +92,13 @@ ng-infrastructure-support@pimcore.services
         part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
         msg.attach(part)
 
-        server = smtplib.SMTP('smtp.northgategonzalez.internal', 25)
+        server = smtplib.SMTP('smtp.northegonzalez.internal', 25)
         text = msg.as_string()
         server.sendmail(email, send_to_email, text)
         server.quit()
 
 if __name__== "__main__":
         print("Executing ..")
-        pimcore_SendMail()
+        pime_SendMail()
 EOF
 echo " *** Completed *** "
