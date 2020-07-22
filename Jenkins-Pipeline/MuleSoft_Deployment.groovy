@@ -24,14 +24,14 @@ pipeline {
 
 					### Generate Access Token and Bearer Type
 					echo "Generating Token"
-					access_token=$(curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X POST https://anypoint.mulesoft.com/accounts/login -H 'cache-control: no-cache' -H 'content-type: application/json' -d "$data" | grep 'access_token' | awk -F ":" '{print $NF}' | cut -d ',' -f1 | tr -d '"' | tr -d ' ')
+					access_token=$(curl -s --proxy 'restrictedproxy.tyele.com:80' -X POST https://anypoint.mulesoft.com/accounts/login -H 'cache-control: no-cache' -H 'content-type: application/json' -d "$data" | grep 'access_token' | awk -F ":" '{print $NF}' | cut -d ',' -f1 | tr -d '"' | tr -d ' ')
 
 					echo "Generating Bearer Type"
-					token_type=$(curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X POST https://anypoint.mulesoft.com/accounts/login -H 'cache-control: no-cache' -H 'content-type: application/json' -d "$data" | grep 'token_type' | awk -F ":" '{print $NF}' | cut -d ',' -f1 | tr -d '"' | tr -d ' ')
+					token_type=$(curl -s --proxy 'restrictedproxy.tyele.com:80' -X POST https://anypoint.mulesoft.com/accounts/login -H 'cache-control: no-cache' -H 'content-type: application/json' -d "$data" | grep 'token_type' | awk -F ":" '{print $NF}' | cut -d ',' -f1 | tr -d '"' | tr -d ' ')
 
 					### Get Environment ID
 					echo "Get environment id"
-					curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X GET https://anypoint.mulesoft.com/accounts/api/organizations/$orgId -H "authorization:${token_type} ${access_token}" -H 'cache-control: no-cache' | jq '.environments' > envId.json
+					curl -s --proxy 'restrictedproxy.tyele.com:80' -X GET https://anypoint.mulesoft.com/accounts/api/organizations/$orgId -H "authorization:${token_type} ${access_token}" -H 'cache-control: no-cache' | jq '.environments' > envId.json
 
 					### Filter Environment ID from JSON
 					counter=`cat envId.json | jq '.[] .name' | wc -l`
@@ -53,11 +53,11 @@ pipeline {
 					###echo "Token Type is: $token_type"
 
 					### Get Server ID
-					curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/servers -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -H 'cache-control: no-cache' > serverId1.json
+					curl -s --proxy 'restrictedproxy.tyele.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/servers -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -H 'cache-control: no-cache' > serverId1.json
 					###cat serverId1.json
 
 					### Get Server Group
-					curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/serverGroups -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -H 'cache-control: no-cache' > serverId.json
+					curl -s --proxy 'restrictedproxy.tyele.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/serverGroups -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -H 'cache-control: no-cache' > serverId.json
 
 					### Filter Server ID from JSON
 					counter=`cat serverId.json |jq '.data[] .name'| wc -l`
@@ -76,7 +76,7 @@ pipeline {
 					#cat serverid.txt
 
 					### Get Artifact ID Of Existing Application 
-					curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/applications -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '${orgId}'' -H 'X-ANYPNT-ENV-ID: '${envId}'' -H 'cache-control: no-cache' > output.json
+					curl -s --proxy 'restrictedproxy.tyele.com:80' -X GET https://anypoint.mulesoft.com/hybrid/api/v1/applications -H "authorization:${token_type} ${access_token}" -H 'X-ANYPNT-ORG-ID: '${orgId}'' -H 'X-ANYPNT-ENV-ID: '${envId}'' -H 'cache-control: no-cache' > output.json
 
 					### Filter APPID from JSON
 					cat /dev/null > temp.json
@@ -94,7 +94,7 @@ pipeline {
 							cat serverid.txt |  tr " " "\n" >> serverid1.txt
 							while IFS= read -r line; do
 									echo "Updating Deployment on Server: $line"
-									curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X PATCH  https://anypoint.mulesoft.com/hybrid/api/v1/applications/$appid -H 'authorization: '${token_type}' '${access_token}'' -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -F 'file=@'/var/lib/jenkins/dependency/te-ct-mule-api-gateway.jar'' -F 'artifactName='$artifactName'' -F 'targetId='$line''
+									curl -s --proxy 'restrictedproxy.tyele.com:80' -X PATCH  https://anypoint.mulesoft.com/hybrid/api/v1/applications/$appid -H 'authorization: '${token_type}' '${access_token}'' -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -F 'file=@'/var/lib/jenkins/dependency/te-ct-mule-api-gateway.jar'' -F 'artifactName='$artifactName'' -F 'targetId='$line''
 									echo "Deployment Completed"
 							done < serverid1.txt
 					else
@@ -102,7 +102,7 @@ pipeline {
 							while IFS= read -r line; do
 									###Deploy New Application
 									echo "Deploying New Application on Server: $line"
-									curl -s --proxy 'restrictedproxy.tycoelectronics.com:80' -X POST https://anypoint.mulesoft.com/hybrid/api/v1/applications -H 'authorization: '${token_type}' '${access_token}'' -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -F 'file=@'/var/lib/jenkins/dependency/te-ct-mule-api-gateway.jar'' -F 'artifactName='$artifactName'' -F 'targetId='$line''
+									curl -s --proxy 'restrictedproxy.tyele.com:80' -X POST https://anypoint.mulesoft.com/hybrid/api/v1/applications -H 'authorization: '${token_type}' '${access_token}'' -H 'X-ANYPNT-ORG-ID: '$orgId'' -H 'X-ANYPNT-ENV-ID: '$envId'' -F 'file=@'/var/lib/jenkins/dependency/te-ct-mule-api-gateway.jar'' -F 'artifactName='$artifactName'' -F 'targetId='$line''
 									echo "Deployment Completed"
 							done < serverid1.txt
 					fi
