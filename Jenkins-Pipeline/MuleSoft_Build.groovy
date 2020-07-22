@@ -16,7 +16,7 @@ parameters {
         stage ('Git Checkout') {
             steps {
                 deleteDir()
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'Git', url: 'https://github.tycoelectronics.net/HappiestMindControlTower/muleApiGateway.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'Git', url: 'https://github.tycoelectronics.net/hmindsControlTower/muleApiGateway.git']]])
             
         
             }

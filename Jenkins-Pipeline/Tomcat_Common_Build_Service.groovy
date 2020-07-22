@@ -15,7 +15,7 @@ pipeline {
         stage ('Git Checkout') {
             steps {
                 deleteDir()
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'Git', url: 'https://github.tycoelectronics.net/HappiestMindControlTower/backendService.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'Git', url: 'https://github.tyele.net/hmindsControlTower/backendService.git']]])
             }
         }
         stage ('Maven Test and Build') {
